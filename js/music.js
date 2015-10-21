@@ -29,12 +29,19 @@ $('form').submit(function() {
 	// music.set('website', $('#website'.val()));
 	// music.set ('song', $('#song:input').val());
 
+	
+	// A more effective loop structure
 	$(this).find('input').each(function (){
-		music,set($(this).attr('id'),$(this).val();)
+		music.set($(this).attr('id'),$(this).val())
 		$(this).val('');
-	})
+	});
 	// After setting each property, save your new instance back to your database
-	music.save();
+	music.save(null,{
+		success:function(){
+			getData()
+		}
+	});
+
 
 	
 	return false
@@ -47,32 +54,63 @@ var getData = function() {
 	
 
 	// Set up a new query for our Music class
+	var query = new Parse.Query(Music);
 
 
 	// Set a parameter for your query -- where the website property isn't missing
+	query.exists('website');
 
 
 	/* Execute the query using ".find".  When successful:
 	    - Pass the returned data into your buildList function
 	*/
+
+	query.find({
+		success:function(response){
+			buildList(response);
+		} 
+	})
+
+	/* querry.find ({
+		success:buildList
+	})*/
 }
 
 // A function to build your list
 var buildList = function(data) {
+	console.log('buildList', data)
 	// Empty out your unordered list
-	
+	$('ol').empty();
 	// Loop through your data, and pass each element to the addItem function
+	data.forEach(function(d){
+		addItem(d);
+	})
 
 }
 
 
 // This function takes in an item, adds it to the screen
 var addItem = function(item) {
+	console.log('add item: ',item)
 	// Get parameters (website, band, song) from the data item passed to the function
-
-	
+	var website = item.get('website');
+	var band = item.get ('band');
+	var song =item.get('song');
 	// Append li that includes text from the data item
+	var li =$('<li> Check out '+ band + 'I love song '+ song + '</li>');
+	var button = $('<button class="btn-xs btn-danger"><span  class ="glyphicon  glyphicon-remove"></span></button>');
+	button.on('click',function(){
+		item.destroy({
+			success: function(){
+				getData()
+			}
+		});
 
+	})
+
+
+	li.append(button) 
+	$('ol').append(li);
 
 	
 	// Time pending, create a button that removes the data item on click
@@ -80,5 +118,6 @@ var addItem = function(item) {
 }
 
 // Call your getData function when the page loads
+getData();
 
 
